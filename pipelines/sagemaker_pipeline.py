@@ -5,7 +5,7 @@ import time
 import boto3
 import sagemaker
 from dotenv import load_dotenv
-from sagemaker.processing import ProcessingInput, ProcessingOutput, ScriptProcessor
+from sagemaker.processing import ProcessingInput, ProcessingOutput, Processor
 from sagemaker.sklearn.estimator import SKLearn
 from sagemaker.sklearn.model import SKLearnModel
 from sagemaker.workflow.model_step import ModelStep
@@ -36,18 +36,19 @@ ECR_IMAGE_URI = (
     f"{boto3.client('sts').get_caller_identity()['Account']}.dkr.ecr.{region}.amazonaws.com/"
     f"{ECR_REPO}:{ECR_IMAGE_TAG}"
 )
+PIPELINE_NAME = os.environ.get("SAGEMAKER_PIPELINE_NAME", "geo-busyness-pipeline")
 
 CONFIG_S3_URI = os.environ.get("CONFIG_S3_URI", f"s3://{BUCKET}/config/config.yaml")
 
 # ------------------------------------------------------------------
 # Step 1: Feature Engineering
 # ------------------------------------------------------------------
-feature_processor = ScriptProcessor(
+feature_processor = Processor(
     image_uri=ECR_IMAGE_URI,
-    command=["python"],
     role=role,
-    instance_type="ml.t3.medium",
     instance_count=1,
+    instance_type="ml.t3.medium",
+    entrypoint=["python", "/app/src/pipelines/sagemaker_processing.py"],
     sagemaker_session=pipeline_session,
 )
 
@@ -68,18 +69,17 @@ feature_step = ProcessingStep(
             destination=f"s3://{BUCKET}/data/features/",
         )
     ],
-    code="src/pipelines/sagemaker_processing.py",
 )
 
 # ------------------------------------------------------------------
 # Step 2: Training
 # ------------------------------------------------------------------
 estimator = SKLearn(
-    entry_point="pipelines/sagemaker_training.py",
-    source_dir="src",
+    entry_point="/app/src/pipelines/sagemaker_training.py",
+    source_dir=None,
+    image_uri=ECR_IMAGE_URI,
     role=role,
     instance_type="ml.m5.large",
-    framework_version="1.2-1",
     output_path=f"s3://{BUCKET}/model_artifacts/",
     sagemaker_session=pipeline_session,
 )
@@ -103,9 +103,9 @@ training_step = TrainingStep(
 model = SKLearnModel(
     model_data=training_step.properties.ModelArtifacts.S3ModelArtifacts,
     role=role,
-    entry_point="model_inference.py",
-    source_dir="src",
-    framework_version="1.2-1",
+    image_uri=ECR_IMAGE_URI,
+    entry_point="/app/src/model_inference.py",
+    source_dir=None,
     sagemaker_session=pipeline_session,
 )
 
@@ -124,7 +124,7 @@ register_step = ModelStep(
 # Pipeline
 # ------------------------------------------------------------------
 pipeline = Pipeline(
-    name="geo-busyness-pipeline",
+    name=PIPELINE_NAME,
     steps=[feature_step, training_step, register_step],
     sagemaker_session=pipeline_session,
 )

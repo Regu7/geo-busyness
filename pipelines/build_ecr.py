@@ -50,7 +50,8 @@ def build_and_push_image():
 
     # Login to ECR
     subprocess.run(
-        ["docker", "login", "--username", username, "--password", password, registry],
+        ["docker", "login", "--username", username, "--password-stdin", registry],
+        input=password.encode("utf-8"),
         check=True,
     )
 
