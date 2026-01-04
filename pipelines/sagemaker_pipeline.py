@@ -4,6 +4,7 @@ import time
 
 import boto3
 import sagemaker
+from dotenv import load_dotenv
 from sagemaker.processing import ProcessingInput, ProcessingOutput, ScriptProcessor
 from sagemaker.sklearn.estimator import SKLearn
 from sagemaker.sklearn.model import SKLearnModel
@@ -11,6 +12,8 @@ from sagemaker.workflow.model_step import ModelStep
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.workflow.pipeline_context import PipelineSession
 from sagemaker.workflow.steps import ProcessingStep, TrainingInput, TrainingStep
+
+load_dotenv()
 
 # ------------------------------------------------------------------
 # Setup

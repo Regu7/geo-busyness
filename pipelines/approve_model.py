@@ -2,6 +2,9 @@ import os
 import sys
 
 import boto3
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def approve_latest_model_package(model_package_group_name):
@@ -39,4 +42,3 @@ def approve_latest_model_package(model_package_group_name):
 if __name__ == "__main__":
     group_name = os.environ.get("MODEL_PACKAGE_GROUP_NAME", "geo-busyness-model-group")
     approve_latest_model_package(group_name)
-   

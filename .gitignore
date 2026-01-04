@@ -48,6 +48,9 @@ htmlcov/
 .env
 .env.local
 
+# other
 archive/
-
 .python-version
+test_api
+pending.txt
+

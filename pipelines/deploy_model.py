@@ -4,6 +4,9 @@ import time
 
 import boto3
 import sagemaker
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def get_latest_approved_model_package(sm_client, model_package_group_name):

@@ -5,6 +5,9 @@ Upload config.yaml to S3 for SageMaker pipeline
 import os
 
 import boto3
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def upload_config_to_s3():

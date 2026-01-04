@@ -78,7 +78,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "sagemaker>=2,<3" boto3 pyyaml
+          pip install "sagemaker>=2,<3" boto3 pyyaml python-dotenv
 
       - name: Upload config to S3
         run: |
@@ -105,7 +105,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "sagemaker>=2,<3" boto3 pyyaml
+          pip install "sagemaker>=2,<3" boto3 pyyaml python-dotenv
 
       - name: Upsert and run pipeline (wait)
         run: |
@@ -132,7 +132,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "sagemaker>=2,<3" boto3 pyyaml
+          pip install "sagemaker>=2,<3" boto3 pyyaml python-dotenv
 
       - name: Approve Model
         run: |
@@ -160,7 +160,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install boto3 "sagemaker>=2,<3"
+          pip install boto3 "sagemaker>=2,<3" python-dotenv
 
       - name: Deploy latest approved model (and API Gateway)
         env:
