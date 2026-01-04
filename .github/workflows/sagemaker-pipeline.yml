@@ -1,11 +1,8 @@
 name: SageMaker CD
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    branches: [main, dev]
-    types:
-      - completed
+  push:
+    branches: [main, dev_pipeline, dev2]
   workflow_dispatch:
 
 concurrency:
@@ -21,7 +18,7 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_OIDC_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
   SAGEMAKER_ROLE_ARN: ${{ secrets.SAGEMAKER_ROLE_ARN }}
-  ECR_IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+  ECR_IMAGE_TAG: ${{ github.sha }}
   CONFIG_S3_KEY: config/config.yaml
   LOCAL_CONFIG_PATH: src/config/config.yaml
   SAGEMAKER_INFERENCE_INSTANCE_TYPE: ml.t2.medium
@@ -29,13 +26,10 @@ env:
 
 jobs:
   build_push_image:
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
       - name: Set dynamic environment variables
         run: |
