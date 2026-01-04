@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 class CourierLocationRecord(BaseModel):
     """Schema for a single courier location record."""
 
-    model_config = ConfigDict(strict=True)
+    model_config = ConfigDict(strict=False)  # Allow type coercion
 
-    courier_id: int = Field(..., description="Unique identifier for the courier")
+    courier_id: str | int = Field(..., description="Unique identifier for the courier")
     courier_lat: float = Field(..., ge=-90, le=90, description="Courier latitude")
     courier_lon: float = Field(..., ge=-180, le=180, description="Courier longitude")
     restaurant_lat: float = Field(..., ge=-90, le=90, description="Restaurant latitude")
