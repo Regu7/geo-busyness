@@ -6,6 +6,8 @@ import boto3
 import pandas as pd
 import yaml
 
+from src.core.validation import validate_dataframe
+
 # Set up logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -43,6 +45,14 @@ def load_and_process_data(df=None):
     logger.info(f"Loaded dataset with {len(df)} rows")
     df.dropna(axis=0, inplace=True)
     logger.info(f"After dropping NAs: {len(df)} rows")
+
+    # Validate data quality
+    df, validation_errors = validate_dataframe(df, "training")
+    if validation_errors:
+        logger.warning(
+            f"Dropped {len(validation_errors)} invalid rows during validation"
+        )
+    logger.info(f"After validation: {len(df)} rows")
 
     # Process unique restaurants
     restaurants_ids = {}

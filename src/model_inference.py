@@ -10,6 +10,7 @@ import pandas as pd
 
 from src.core.constants import DEFAULT_H3_RESOLUTION, FEATURE_COLUMNS
 from src.core.feature_engineering import calc_dist, calc_haversine_dist
+from src.core.validation import validate_dataframe
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -175,6 +176,12 @@ def input_fn(request_body, request_content_type):
         try:
             df = pd.read_csv(StringIO(request_body))
             logger.info(f"Parsed CSV shape: {df.shape}")
+            # Validate input data
+            df, errors = validate_dataframe(df, "inference")
+            if errors:
+                logger.warning(f"Validation dropped {len(errors)} invalid rows")
+            if df.empty:
+                raise ValueError("No valid data after validation")
             return df
         except Exception as e:
             logger.error(f"Error parsing CSV: {e}")
@@ -187,6 +194,12 @@ def input_fn(request_body, request_content_type):
             else:
                 df = pd.DataFrame(data)
             logger.info(f"Parsed JSON shape: {df.shape}")
+            # Validate input data
+            df, errors = validate_dataframe(df, "inference")
+            if errors:
+                logger.warning(f"Validation dropped {len(errors)} invalid rows")
+            if df.empty:
+                raise ValueError("No valid data after validation")
             return df
         except Exception as e:
             logger.error(f"Error parsing JSON: {e}")
