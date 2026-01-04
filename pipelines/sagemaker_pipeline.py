@@ -5,9 +5,9 @@ import time
 import boto3
 import sagemaker
 from dotenv import load_dotenv
+from sagemaker.model import Model
 from sagemaker.processing import ProcessingInput, ProcessingOutput, Processor
 from sagemaker.sklearn.estimator import SKLearn
-from sagemaker.sklearn.model import SKLearnModel
 from sagemaker.workflow.model_step import ModelStep
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.workflow.pipeline_context import PipelineSession
@@ -100,13 +100,17 @@ training_step = TrainingStep(
 # ------------------------------------------------------------------
 # Step 3: Register Model
 # ------------------------------------------------------------------
-model = SKLearnModel(
+from sagemaker.model import Model
+
+model = Model(
+    image_uri=ECR_IMAGE_URI,
     model_data=training_step.properties.ModelArtifacts.S3ModelArtifacts,
     role=role,
-    image_uri=ECR_IMAGE_URI,
-    entry_point="/app/src/model_inference.py",
-    source_dir=None,
     sagemaker_session=pipeline_session,
+    env={
+        "SAGEMAKER_PROGRAM": "src/model_inference.py",
+        "SAGEMAKER_SUBMIT_DIRECTORY": "/app",
+    },
 )
 
 register_step = ModelStep(
