@@ -23,6 +23,10 @@ COPY src/ ./src/
 COPY src/config/config.yaml ./
 COPY main.py ./
 
+# Copy serve script for inference
+COPY src/serve /usr/local/bin/serve
+RUN chmod +x /usr/local/bin/serve
+
 # Create directory for logs
 RUN mkdir -p /app/logs
 
