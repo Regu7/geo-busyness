@@ -15,4 +15,16 @@ dependencies = [
     "mlflow",
     "sagemaker==2.255.0",
     "python-dotenv",
+    "pytest>=9.0.2",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+# addopts = "--cov=src --cov-report=term-missing"
