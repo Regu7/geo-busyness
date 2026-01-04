@@ -3,7 +3,7 @@ name: SageMaker CD
 on:
   workflow_run:
     workflows: ["CI"]
-    branches: [main, dev]
+    branches: [main, dev, dev_refactor]
     types:
       - completed
   workflow_dispatch:
