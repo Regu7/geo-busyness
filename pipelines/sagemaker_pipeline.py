@@ -50,10 +50,23 @@ CONFIG_S3_URI = os.environ.get("CONFIG_S3_URI", f"s3://{BUCKET}/config/config.ya
 def get_mlflow_tracking_uri(region):
     """
     Retrieve MLflow Tracking URI from environment or discover SageMaker Managed MLflow.
+    Returns the HTTP URL of the tracking server, not the ARN.
     """
-    # 1. Check environment variable
-    if os.environ.get("MLFLOW_TRACKING_URI"):
-        return os.environ.get("MLFLOW_TRACKING_URI")
+    # 1. Check environment variable - if it's an ARN, resolve it to a URL
+    env_uri = os.environ.get("MLFLOW_TRACKING_URI")
+    if env_uri:
+        if env_uri.startswith("arn:aws:sagemaker:"):
+            # It's an ARN, we need to get the actual tracking URL
+            try:
+                sm = boto3.client("sagemaker", region_name=region)
+                response = sm.describe_mlflow_tracking_server(TrackingServerName=env_uri.split("/")[-1])
+                return response.get("TrackingServerUrl")
+            except Exception as e:
+                print(f"Warning: Could not resolve MLflow ARN to URL: {e}")
+                return None
+        else:
+            # It's already a valid URI (http, https, file, etc.)
+            return env_uri
 
     # 2. Try to find SageMaker Managed MLflow
     try:
@@ -62,8 +75,10 @@ def get_mlflow_tracking_uri(region):
         response = sm.list_mlflow_tracking_servers()
         summaries = response.get("TrackingServerSummaries", [])
         if summaries:
-            # Return the ARN of the first available server
-            return summaries[0]["TrackingServerArn"]
+            # Get the tracking server URL (not ARN)
+            server_name = summaries[0]["TrackingServerName"]
+            details = sm.describe_mlflow_tracking_server(TrackingServerName=server_name)
+            return details.get("TrackingServerUrl")
     except Exception:
         # Fail silently if permissions are missing or API is unavailable
         pass
