@@ -14,6 +14,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # File handler for logs
+os.makedirs("logs", exist_ok=True)
 file_handler = logging.FileHandler("logs/pipeline.log")
 file_handler.setFormatter(
     logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
