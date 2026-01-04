@@ -8,9 +8,13 @@ from dotenv import load_dotenv
 from sagemaker.estimator import Estimator
 from sagemaker.model import Model
 from sagemaker.processing import ProcessingInput, ProcessingOutput, Processor
+from sagemaker.workflow.condition_step import ConditionStep
+from sagemaker.workflow.conditions import ConditionGreaterThanOrEqualTo
+from sagemaker.workflow.functions import JsonGet
 from sagemaker.workflow.model_step import ModelStep
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.workflow.pipeline_context import PipelineSession
+from sagemaker.workflow.properties import PropertyFile
 from sagemaker.workflow.steps import ProcessingStep, TrainingInput, TrainingStep
 
 load_dotenv()
@@ -140,7 +144,51 @@ training_step = TrainingStep(
 )
 
 # ------------------------------------------------------------------
-# Step 3: Register Model
+# Step 3: Evaluation
+# ------------------------------------------------------------------
+script_eval = Processor(
+    image_uri=ECR_IMAGE_URI,
+    role=role,
+    instance_count=1,
+    instance_type="ml.t3.medium",
+    entrypoint=["python", "/app/src/pipelines/evaluate.py"],
+    sagemaker_session=pipeline_session,
+)
+
+evaluation_report = PropertyFile(
+    name="EvaluationReport",
+    output_name="evaluation",
+    path="evaluation.json",
+)
+
+evaluation_step = ProcessingStep(
+    name="EvaluateModel",
+    processor=script_eval,
+    inputs=[
+        ProcessingInput(
+            source=training_step.properties.ModelArtifacts.S3ModelArtifacts,
+            destination="/opt/ml/processing/model",
+        ),
+        ProcessingInput(
+            source=feature_step.properties.ProcessingOutputConfig.Outputs[
+                "features"
+            ].S3Output.S3Uri,
+            destination="/opt/ml/processing/input",
+        ),
+        ProcessingInput(source=CONFIG_S3_URI, destination="/opt/ml/processing/config"),
+    ],
+    outputs=[
+        ProcessingOutput(
+            output_name="evaluation",
+            source="/opt/ml/processing/evaluation",
+            destination=f"s3://{BUCKET}/evaluation/",
+        ),
+    ],
+    property_files=[evaluation_report],
+)
+
+# ------------------------------------------------------------------
+# Step 4: Register Model (Conditional)
 # ------------------------------------------------------------------
 from sagemaker.model import Model
 
@@ -166,12 +214,29 @@ register_step = ModelStep(
     ),
 )
 
+# Condition step for evaluating model quality and branching execution
+cond_lte = ConditionGreaterThanOrEqualTo(
+    left=JsonGet(
+        step_name=evaluation_step.name,
+        property_file=evaluation_report,
+        json_path="regression_metrics.r2_score.value",
+    ),
+    right=0.6,  # Threshold for R2 score
+)
+
+condition_step = ConditionStep(
+    name="CheckAccuracy",
+    conditions=[cond_lte],
+    if_steps=[register_step],
+    else_steps=[],
+)
+
 # ------------------------------------------------------------------
 # Pipeline
 # ------------------------------------------------------------------
 pipeline = Pipeline(
     name=PIPELINE_NAME,
-    steps=[feature_step, training_step, register_step],
+    steps=[feature_step, training_step, evaluation_step, condition_step],
     sagemaker_session=pipeline_session,
 )
 

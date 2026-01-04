@@ -21,6 +21,7 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_OIDC_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
   SAGEMAKER_ROLE_ARN: ${{ secrets.SAGEMAKER_ROLE_ARN }}
+  MLFLOW_TRACKING_URI: arn:aws:sagemaker:us-east-1:872869206989:mlflow-tracking-server/mlflow-geo-busyness
   ECR_IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
   CONFIG_S3_KEY: config/config.yaml
   LOCAL_CONFIG_PATH: src/config/config.yaml
