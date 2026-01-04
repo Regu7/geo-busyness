@@ -5,9 +5,9 @@ import time
 import boto3
 import sagemaker
 from dotenv import load_dotenv
+from sagemaker.estimator import Estimator
 from sagemaker.model import Model
 from sagemaker.processing import ProcessingInput, ProcessingOutput, Processor
-from sagemaker.sklearn.estimator import SKLearn
 from sagemaker.workflow.model_step import ModelStep
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.workflow.pipeline_context import PipelineSession
@@ -74,14 +74,20 @@ feature_step = ProcessingStep(
 # ------------------------------------------------------------------
 # Step 2: Training
 # ------------------------------------------------------------------
-estimator = SKLearn(
-    entry_point="/app/src/pipelines/sagemaker_training.py",
-    source_dir=None,
+# Use generic Estimator to avoid local file checks
+from sagemaker.estimator import Estimator
+
+estimator = Estimator(
     image_uri=ECR_IMAGE_URI,
     role=role,
+    instance_count=1,
     instance_type="ml.m5.large",
     output_path=f"s3://{BUCKET}/model_artifacts/",
     sagemaker_session=pipeline_session,
+    environment={
+        "SAGEMAKER_PROGRAM": "src/pipelines/sagemaker_training.py",
+        "SAGEMAKER_SUBMIT_DIRECTORY": "/app",
+    },
 )
 
 training_step = TrainingStep(
