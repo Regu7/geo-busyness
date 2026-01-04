@@ -3,7 +3,7 @@ name = "geo-busyness"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "pandas",
     "numpy",
@@ -14,4 +14,17 @@ dependencies = [
     "pyyaml",
     "mlflow",
     "sagemaker==2.255.0",
+    "python-dotenv",
+    "pytest>=9.0.2",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+# addopts = "--cov=src --cov-report=term-missing"

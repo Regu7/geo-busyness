@@ -19,6 +19,12 @@ coverage.xml
 .pytest_cache
 .hypothesis
 mlruns
+logs
+archive
+.venv
+venv
+.DS_Store
+mlruns
 logs/
 .DS_Store
 .ipynb_checkpoints

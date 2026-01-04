@@ -1,0 +1,220 @@
+name: SageMaker CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: [dev_pipeline]
+    types:
+      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: sagemaker-cicd-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  POD: dev
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_OIDC_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+  SAGEMAKER_ROLE_ARN: ${{ secrets.SAGEMAKER_ROLE_ARN }}
+  ECR_IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+  CONFIG_S3_KEY: config/config.yaml
+  LOCAL_CONFIG_PATH: src/config/config.yaml
+  SAGEMAKER_INFERENCE_INSTANCE_TYPE: ml.t2.medium
+  CREATE_APIGW: "true"
+
+jobs:
+  build_push_image:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+
+      - name: Set dynamic environment variables
+        run: |
+          echo "SAGEMAKER_BUCKET=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "ECR_REPO=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "CONFIG_S3_URI=s3://geo-busyness-${{ env.POD }}/config/config.yaml" >> $GITHUB_ENV
+          echo "SAGEMAKER_PIPELINE_NAME=geo-busyness-pipeline-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_MODEL_PACKAGE_GROUP_NAME=geo-busyness-model-group-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_ENDPOINT_NAME=geo-busyness-endpoint-${{ env.POD }}" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories --repository-names "${{ env.ECR_REPO }}" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "${{ env.ECR_REPO }}" >/dev/null
+
+      - name: Build and push image (sha + latest)
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build \
+            -t $REGISTRY/${{ env.ECR_REPO }}:${{ env.ECR_IMAGE_TAG }} \
+            -t $REGISTRY/${{ env.ECR_REPO }}:latest \
+            .
+          docker push $REGISTRY/${{ env.ECR_REPO }}:${{ env.ECR_IMAGE_TAG }}
+          docker push $REGISTRY/${{ env.ECR_REPO }}:latest
+
+  upload_config:
+    needs: build_push_image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set dynamic environment variables
+        run: |
+          echo "SAGEMAKER_BUCKET=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "ECR_REPO=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "CONFIG_S3_URI=s3://geo-busyness-${{ env.POD }}/config/config.yaml" >> $GITHUB_ENV
+          echo "SAGEMAKER_PIPELINE_NAME=geo-busyness-pipeline-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_MODEL_PACKAGE_GROUP_NAME=geo-busyness-model-group-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_ENDPOINT_NAME=geo-busyness-endpoint-${{ env.POD }}" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "sagemaker>=2,<3" boto3 pyyaml python-dotenv
+
+      - name: Upload config to S3
+        run: |
+          python pipelines/upload_config.py
+
+  sagemaker_pipeline:
+    needs: upload_config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set dynamic environment variables
+        run: |
+          echo "SAGEMAKER_BUCKET=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "ECR_REPO=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "CONFIG_S3_URI=s3://geo-busyness-${{ env.POD }}/config/config.yaml" >> $GITHUB_ENV
+          echo "SAGEMAKER_PIPELINE_NAME=geo-busyness-pipeline-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_MODEL_PACKAGE_GROUP_NAME=geo-busyness-model-group-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_ENDPOINT_NAME=geo-busyness-endpoint-${{ env.POD }}" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "sagemaker>=2,<3" boto3 pyyaml python-dotenv
+
+      - name: Upsert and run pipeline (wait)
+        run: |
+          python pipelines/sagemaker_pipeline.py --wait --poll-seconds 30 --timeout-minutes 180
+
+  approve_model:
+    needs: sagemaker_pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set dynamic environment variables
+        run: |
+          echo "SAGEMAKER_BUCKET=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "ECR_REPO=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "CONFIG_S3_URI=s3://geo-busyness-${{ env.POD }}/config/config.yaml" >> $GITHUB_ENV
+          echo "SAGEMAKER_PIPELINE_NAME=geo-busyness-pipeline-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_MODEL_PACKAGE_GROUP_NAME=geo-busyness-model-group-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_ENDPOINT_NAME=geo-busyness-endpoint-${{ env.POD }}" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "sagemaker>=2,<3" boto3 pyyaml python-dotenv
+
+      - name: Approve Model
+        run: |
+          python pipelines/approve_model.py
+
+  deploy_model:
+    needs: approve_model
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set dynamic environment variables
+        run: |
+          echo "SAGEMAKER_BUCKET=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "ECR_REPO=geo-busyness-${{ env.POD }}" >> $GITHUB_ENV
+          echo "CONFIG_S3_URI=s3://geo-busyness-${{ env.POD }}/config/config.yaml" >> $GITHUB_ENV
+          echo "SAGEMAKER_PIPELINE_NAME=geo-busyness-pipeline-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_MODEL_PACKAGE_GROUP_NAME=geo-busyness-model-group-${{ env.POD }}" >> $GITHUB_ENV
+          echo "SAGEMAKER_ENDPOINT_NAME=geo-busyness-endpoint-${{ env.POD }}" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3 "sagemaker>=2,<3" python-dotenv
+
+      - name: Deploy latest approved model (and API Gateway)
+        env:
+          CREATE_APIGW: "true"
+        run: |
+          python pipelines/deploy_model.py
