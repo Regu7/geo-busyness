@@ -21,7 +21,7 @@ env:
   ECR_IMAGE_TAG: ${{ github.sha }}
   CONFIG_S3_KEY: config/config.yaml
   LOCAL_CONFIG_PATH: src/config/config.yaml
-  SAGEMAKER_INSTANCE_TYPE: ml.t3.medium
+  SAGEMAKER_INFERENCE_INSTANCE_TYPE: ml.t2.medium
   CREATE_APIGW: "true"
 
 jobs:

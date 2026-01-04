@@ -257,7 +257,7 @@ def main():
         "SAGEMAKER_MODEL_PACKAGE_GROUP_NAME", "geo-busyness-model-group"
     )
     endpoint_name = os.environ.get("SAGEMAKER_ENDPOINT_NAME", "geo-busyness-endpoint")
-    instance_type = os.environ.get("SAGEMAKER_INSTANCE_TYPE", "ml.t2.medium")
+    instance_type = os.environ.get("SAGEMAKER_INFERENCE_INSTANCE_TYPE", "ml.t2.medium")
     create_apigw = os.environ.get("CREATE_APIGW", "true").lower() in {
         "1",
         "true",
