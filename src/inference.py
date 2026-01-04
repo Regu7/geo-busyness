@@ -1,11 +1,10 @@
+import joblib
+import os
 import json
 import logging
-import os
-from io import StringIO
-
-import joblib
-import numpy as np
 import pandas as pd
+import numpy as np
+from io import StringIO
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -104,4 +103,4 @@ def output_fn(prediction, response_content_type):
         # Default to JSON
         if isinstance(prediction, np.ndarray):
             prediction = prediction.tolist()
-        return json.dumps({'predictions': prediction})       
+        return json.dumps({'predictions': prediction})
