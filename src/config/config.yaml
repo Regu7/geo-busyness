@@ -1,0 +1,14 @@
+bucket: geo-busyness
+raw_data_path: data/raw
+processed_data_path: data/processed
+model_artifacts_path: model_artifacts
+file_name: 'ML Eng 03 - Project final_dataset.csv'
+h3_resolution: 7
+k_clusters: 5
+random_seed: 1
+test_size: 0.33
+random_state: 42
+model_params:
+  max_depth: [4, 5]
+  min_samples_leaf: [50, 75]
+  n_estimators: [100, 150]

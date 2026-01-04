@@ -1,0 +1,17 @@
+[project]
+name = "geo-busyness"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas",
+    "numpy",
+    "scikit-learn",
+    "h3",
+    "joblib",
+    "boto3",
+    "pyyaml",
+    "mlflow",
+    "sagemaker==2.255.0",
+]
