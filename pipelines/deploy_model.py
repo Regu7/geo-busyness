@@ -254,7 +254,7 @@ def create_api_gateway(region, endpoint_name, role_arn):
 def main():
     # Configuration
     model_package_group_name = os.environ.get(
-        "MODEL_PACKAGE_GROUP_NAME", "geo-busyness-model-group"
+        "SAGEMAKER_MODEL_PACKAGE_GROUP_NAME", "geo-busyness-model-group"
     )
     endpoint_name = os.environ.get("SAGEMAKER_ENDPOINT_NAME", "geo-busyness-endpoint")
     instance_type = os.environ.get("SAGEMAKER_INSTANCE_TYPE", "ml.t2.medium")

@@ -37,7 +37,9 @@ ECR_IMAGE_URI = (
     f"{ECR_REPO}:{ECR_IMAGE_TAG}"
 )
 PIPELINE_NAME = os.environ.get("SAGEMAKER_PIPELINE_NAME", "geo-busyness-pipeline")
-
+MODEL_PACKAGE_GROUP_NAME_VAR = os.environ.get(
+    "SAGEMAKER_MODEL_PACKAGE_GROUP_NAME", "geo-busyness-model-group"
+)
 CONFIG_S3_URI = os.environ.get("CONFIG_S3_URI", f"s3://{BUCKET}/config/config.yaml")
 
 # ------------------------------------------------------------------
@@ -126,7 +128,7 @@ register_step = ModelStep(
         response_types=["text/csv"],
         inference_instances=["ml.t2.medium", "ml.m5.large"],
         transform_instances=["ml.m5.large"],
-        model_package_group_name="geo-busyness-model-group",
+        model_package_group_name=os.environ.get(MODEL_PACKAGE_GROUP_NAME_VAR,'geo-busyness-model-group')
     ),
 )
 
