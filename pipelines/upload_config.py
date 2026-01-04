@@ -2,6 +2,7 @@
 """
 Upload config.yaml to S3 for SageMaker pipeline
 """
+
 import os
 
 import boto3

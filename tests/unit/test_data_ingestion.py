@@ -2,14 +2,13 @@ import io
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-import pytest
 
 from src.core.data_ingestion import load_and_process_data, load_config
 
 
 def test_load_config(mock_config):
     with patch("builtins.open", new_callable=MagicMock) as mock_open:
-        with patch("yaml.safe_load", return_value=mock_config) as mock_yaml:
+        with patch("yaml.safe_load", return_value=mock_config) as _mock_yaml:
             config = load_config()
             assert config == mock_config
             mock_open.assert_called_once()

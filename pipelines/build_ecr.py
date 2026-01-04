@@ -2,8 +2,8 @@
 """
 Build and push Docker image to Amazon ECR for SageMaker pipeline
 """
+
 import base64
-import os
 import subprocess
 from pathlib import Path
 
@@ -74,4 +74,3 @@ def build_and_push_image():
 if __name__ == "__main__":
     print("build starting...")
     build_and_push_image()
-

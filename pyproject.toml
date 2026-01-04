@@ -16,6 +16,7 @@ dependencies = [
     "sagemaker==2.255.0",
     "python-dotenv",
     "pytest>=9.0.2",
+    "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -27,4 +28,9 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.10",
+]
 # addopts = "--cov=src --cov-report=term-missing"

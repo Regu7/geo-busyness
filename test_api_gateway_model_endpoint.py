@@ -1,5 +1,4 @@
 import json
-import sys
 
 import boto3
 import requests

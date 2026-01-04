@@ -1,7 +1,6 @@
 import io
 import logging
 import os
-from datetime import datetime
 
 import boto3
 import joblib
@@ -11,6 +10,8 @@ import pandas as pd
 import yaml
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV, train_test_split
+
+from src.core.constants import FEATURE_COLUMNS, TARGET_COLUMN
 
 # ---------------------- Logging setup ----------------------
 logging.basicConfig(
@@ -59,20 +60,8 @@ def train_model(df: pd.DataFrame, config=None):
             mlflow.log_param(f"param_grid_{key}", str(value))
 
         # ---------- Data ----------
-        X = df[
-            [
-                "dist_to_restaurant",
-                "Hdist_to_restaurant",
-                "avg_Hdist_to_restaurants",
-                "date_day_number",
-                "restaurant_id",
-                "Five_Clusters_embedding",
-                "h3_index",
-                "date_hour_number",
-                "restaurants_per_index",
-            ]
-        ]
-        y = df["orders_busyness_by_h3_hour"]
+        X = df[FEATURE_COLUMNS]
+        y = df[TARGET_COLUMN]
 
         X_train, X_test, y_train, y_test = train_test_split(
             X,

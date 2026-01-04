@@ -112,7 +112,6 @@ feature_step = ProcessingStep(
 # Step 2: Training
 # ------------------------------------------------------------------
 # Use generic Estimator to avoid local file checks
-from sagemaker.estimator import Estimator
 
 estimator = Estimator(
     image_uri=ECR_IMAGE_URI,
@@ -190,7 +189,6 @@ evaluation_step = ProcessingStep(
 # ------------------------------------------------------------------
 # Step 4: Register Model (Conditional)
 # ------------------------------------------------------------------
-from sagemaker.model import Model
 
 model = Model(
     image_uri=ECR_IMAGE_URI,
