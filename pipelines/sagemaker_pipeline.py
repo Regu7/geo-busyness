@@ -128,7 +128,7 @@ register_step = ModelStep(
         response_types=["text/csv"],
         inference_instances=["ml.t2.medium", "ml.m5.large"],
         transform_instances=["ml.m5.large"],
-        model_package_group_name=os.environ.get(MODEL_PACKAGE_GROUP_NAME_VAR,'geo-busyness-model-group')
+        model_package_group_name=MODEL_PACKAGE_GROUP_NAME_VAR,
     ),
 )
 
