@@ -85,7 +85,7 @@ estimator = Estimator(
     output_path=f"s3://{BUCKET}/model_artifacts/",
     sagemaker_session=pipeline_session,
     environment={
-        "SAGEMAKER_PROGRAM": "src/pipelines/sagemaker_training.py",
+        "SAGEMAKER_PROGRAM": "/app/src/pipelines/sagemaker_training.py",
         "SAGEMAKER_SUBMIT_DIRECTORY": "/app",
     },
 )
