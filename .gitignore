@@ -54,4 +54,3 @@ archive/
 test_api
 pending.txt
 uv.lock
-tests/
