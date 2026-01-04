@@ -3,6 +3,7 @@ import os
 from io import StringIO
 
 import boto3
+import joblib
 import pandas as pd
 import yaml
 
@@ -26,14 +27,22 @@ def main():
     df = pd.read_csv(file_path)
 
     # Process data and generate features
-    df_processed, restaurants = load_and_process_data(df=df)
-    df_features = generate_features(df_processed, restaurants)
+    df_processed, restaurants_ids = load_and_process_data(df=df)
+    df_features, artifacts = generate_features(df_processed, restaurants_ids)
+
+    # Add restaurants_ids to artifacts
+    artifacts["restaurants_ids"] = restaurants_ids
 
     # Save processed features
     output_file = os.path.join(output_features_path, "features.csv")
     df_features.to_csv(output_file, index=False)
 
+    # Save artifacts
+    artifacts_file = os.path.join(output_features_path, "artifacts.joblib")
+    joblib.dump(artifacts, artifacts_file)
+
     print(f"Features saved to {output_file}")
+    print(f"Artifacts saved to {artifacts_file}")
 
 
 if __name__ == "__main__":

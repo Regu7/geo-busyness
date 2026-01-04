@@ -42,6 +42,37 @@ MODEL_PACKAGE_GROUP_NAME_VAR = os.environ.get(
 )
 CONFIG_S3_URI = os.environ.get("CONFIG_S3_URI", f"s3://{BUCKET}/config/config.yaml")
 
+
+def get_mlflow_tracking_uri(region):
+    """
+    Retrieve MLflow Tracking URI from environment or discover SageMaker Managed MLflow.
+    """
+    # 1. Check environment variable
+    if os.environ.get("MLFLOW_TRACKING_URI"):
+        return os.environ.get("MLFLOW_TRACKING_URI")
+
+    # 2. Try to find SageMaker Managed MLflow
+    try:
+        sm = boto3.client("sagemaker", region_name=region)
+        # This API call requires sagemaker:ListMlflowTrackingServers permission
+        response = sm.list_mlflow_tracking_servers()
+        summaries = response.get("TrackingServerSummaries", [])
+        if summaries:
+            # Return the ARN of the first available server
+            return summaries[0]["TrackingServerArn"]
+    except Exception:
+        # Fail silently if permissions are missing or API is unavailable
+        pass
+
+    return None
+
+
+MLFLOW_TRACKING_URI = get_mlflow_tracking_uri(region)
+if MLFLOW_TRACKING_URI:
+    print(f"Using MLflow Tracking URI: {MLFLOW_TRACKING_URI}")
+else:
+    print("No MLflow Tracking URI found. Training will use local tracking.")
+
 # ------------------------------------------------------------------
 # Step 1: Feature Engineering
 # ------------------------------------------------------------------
@@ -89,6 +120,9 @@ estimator = Estimator(
     environment={
         "SAGEMAKER_PROGRAM": "/app/src/pipelines/sagemaker_training.py",
         "SAGEMAKER_SUBMIT_DIRECTORY": "/app",
+        "MLFLOW_TRACKING_URI": (
+            MLFLOW_TRACKING_URI if MLFLOW_TRACKING_URI else "file:/app/mlruns"
+        ),
     },
 )
 

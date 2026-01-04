@@ -25,7 +25,6 @@ model = None
 def load_model():
     global model
     try:
-        # Check if model directory exists, if not (e.g. local test), maybe look elsewhere or fail gracefully
         if not os.path.exists(MODEL_DIR):
             logger.warning(
                 f"Model directory {MODEL_DIR} does not exist. Waiting for model artifacts."

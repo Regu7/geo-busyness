@@ -93,12 +93,14 @@ def centroid_assignation(df, centroids):
 def Encoder(df):
     columnsToEncode = list(df.select_dtypes(include=["category", "object"]))
     le = LabelEncoder()
+    encoders = {}
     for feature in columnsToEncode:
         try:
             df[feature] = le.fit_transform(df[feature])
+            encoders[feature] = le
         except:
             print("Error encoding " + feature)
-    return df
+    return df, encoders
 
 
 def generate_features(df, restaurants_ids):
@@ -195,10 +197,17 @@ def generate_features(df, restaurants_ids):
 
     # Label encoding
     df["h3_index"] = df.h3_index.astype("category")
-    df = Encoder(df)
+    df, encoders = Encoder(df)
 
     logger.info("Feature generation completed")
-    return df
+
+    artifacts = {
+        "centroids": centroids,
+        "restaurants_counts_per_h3_index": restaurants_counts_per_h3_index,
+        "dict_indexes": dict_indexes,
+        "encoders": encoders,
+    }
+    return df, artifacts
 
 
 if __name__ == "__main__":

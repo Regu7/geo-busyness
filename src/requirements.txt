@@ -3,3 +3,6 @@ pyyaml
 mlflow
 pandas
 numpy
+scikit-learn
+h3
+joblib

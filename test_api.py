@@ -19,7 +19,7 @@ def get_api_url(endpoint_name):
 
 
 def test_prediction():
-    endpoint_name = "geo-busyness-endpoint"
+    endpoint_name = "geo-busyness-endpoint-prod"
     url = get_api_url(endpoint_name)
 
     if not url:

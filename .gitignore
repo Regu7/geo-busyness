@@ -51,6 +51,6 @@ htmlcov/
 # other
 archive/
 .python-version
-test_api
+test_api.py
 pending.txt
 uv.lock
