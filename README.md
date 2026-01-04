@@ -1,63 +1,81 @@
 # Geo Busyness Prediction Pipeline
 
-This project implements an end-to-end machine learning pipeline for predicting busyness based on geographic data. It leverages AWS SageMaker for processing, training, and deployment, with a CI/CD workflow managed by GitHub Actions.
+Predicts the busyness of geographic regions (H3 hexagons) based on courier location data. Built as part of an ML Engineering assignment to productionize a data scientist's PoC notebook.
+
+## Quick Start
+
+```bash
+# Install (using uv)
+uv sync
+
+# Run tests
+uv run pytest
+
+# Run locally
+uv run python main.py
+```
 
 ## Project Structure
 
-- `src/`: Core source code for the application.
-  - `core/`: Contains modules for data ingestion, feature engineering, and model training.
-  - `pipelines/`: SageMaker-specific scripts for processing and training steps.
-  - `config/`: Configuration files.
-- `pipelines/`: Orchestration scripts for defining and running the SageMaker pipeline, model approval, and deployment.
-- `tests/`: Unit tests for the core logic.
-- `.github/workflows/`: CI/CD definitions.
-- `Dockerfile`: Definition for the custom container image used in SageMaker steps.
+```
+src/
+├── core/
+│   ├── data_ingestion.py      # Load from S3, clean NAs, create restaurant IDs
+│   ├── feature_engineering.py # Distances, H3 indexes, cluster embeddings
+│   ├── model_training.py      # RandomForest + GridSearchCV, MLflow logging
+│   ├── validation.py          # Pydantic schemas for data quality checks
+│   └── constants.py           # Shared feature columns, defaults
+├── pipelines/
+│   ├── sagemaker_processing.py # Feature engineering step for SageMaker
+│   ├── sagemaker_training.py   # Training step for SageMaker
+│   └── evaluate.py             # Model evaluation step
+├── config/
+│   └── config.yaml            # H3 resolution, model params, S3 paths
+├── model_inference.py         # Inference logic (model_fn, predict_fn)
+└── serve.py                   # Flask app for SageMaker endpoint
 
-## Architecture
+pipelines/
+├── sagemaker_pipeline.py      # Defines SageMaker Pipeline (steps, conditions)
+├── deploy_model.py            # Creates/updates SageMaker endpoint
+├── approve_model.py           # Approves model in registry
+└── upload_config.py           # Uploads config.yaml to S3
 
-The pipeline consists of the following steps:
+tests/
+├── unit/                      # Tests for individual functions
+└── integration/               # End-to-end pipeline tests
 
-1.  **Feature Engineering**: Processes raw data from S3 using a custom container. It calculates distances, generates H3 indexes, and creates embeddings.
-2.  **Model Training**: Trains a Random Forest Regressor on the processed features. Hyperparameters are tuned using GridSearchCV.
-3.  **Model Registration**: Registers the trained model in the SageMaker Model Registry.
+.github/workflows/
+├── ci.yml                     # Runs pytest on every push
+└── sagemaker-pipeline.yml     # Builds, deploys on main/dev
+```
 
-## CI/CD Workflow
+## Pipeline Architecture
 
-The project uses two main workflows:
+```
+Raw Data (S3) → Feature Engineering → Model Training → Model Registry → Endpoint
+```
 
-1.  **CI (`ci.yml`)**: Runs on every push and pull request. It installs dependencies and executes unit tests using `pytest`.
-2.  **CD (`sagemaker-pipeline.yml`)**: Triggers after a successful CI run on specific branches.
-    - Builds and pushes the Docker image to Amazon ECR.
-    - Uploads configuration to S3.
-    - Upserts and executes the SageMaker Pipeline.
-    - Approves the registered model.
-    - Deploys the model to a SageMaker Endpoint.
+1. **Feature Engineering** — Calculates distances (Euclidean, Haversine), H3 indexes, cluster embeddings
+2. **Training** — Random Forest with GridSearchCV hyperparameter tuning
+3. **Deployment** — Registers model, deploys to SageMaker endpoint
 
-## Environment Configuration
+## CI/CD
 
-The pipeline behavior is controlled by environment variables and the branch name:
+| Workflow | Trigger | What it does |
+|----------|---------|--------------|
+| CI | Every push | Runs pytest |
+| CD | After CI passes on `main`/`dev` | Builds Docker → Runs SageMaker pipeline → Deploys |
 
-- **`main` branch**: Deploys to the `prod` environment (e.g., `geo-busyness-prod`).
-- **`dev_pipeline` branch**: Deploys to the `dev` environment (e.g., `geo-busyness-dev`).
+## Design Decisions
 
-Key environment variables include:
-- `SAGEMAKER_BUCKET`: S3 bucket for data and artifacts.
-- `ECR_REPO`: ECR repository name.
-- `SAGEMAKER_ROLE_ARN`: IAM role ARN for SageMaker execution.
+- **SageMaker over Vertex AI** — More familiar with AWS ecosystem
+- **Config in S3** — Allows param changes without image rebuild
+- **MLflow tracking** — Experiment tracking for model comparison
+- **Pydantic validation** — Catches bad data early (lat/lon range checks)
 
-## Local Development
+## Environment Variables
 
-1.  Install dependencies:
-    ```bash
-    pip install -r src/requirements.txt
-    pip install -e .
-    ```
-
-2.  Run tests:
-    ```bash
-    pytest
-    ```
-
-## Deployment
-
-To deploy changes, push to the `main` branch. The GitHub Actions workflow will automatically build the image, run the pipeline, and update the endpoint if the tests pass.
+Set these in GitHub Secrets:
+- `AWS_OIDC_ROLE_ARN` — For GitHub OIDC auth
+- `SAGEMAKER_ROLE_ARN` — SageMaker execution role
+- `AWS_REGION` — e.g., `us-east-1`

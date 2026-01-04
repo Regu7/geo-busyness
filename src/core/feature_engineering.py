@@ -1,7 +1,7 @@
 import collections.abc
 import logging
 import os
-from math import asin, cos, radians, sin, sqrt
+from math import radians
 
 import h3
 import numpy as np
@@ -49,8 +49,8 @@ def calc_haversine_dist(lat1, lon1, lat2, lon2):
     if isinstance(lat1, collections.abc.Sequence):
         dLat = np.array([radians(l2 - l1) for l2, l1 in zip(lat2, lat1)])
         dLon = np.array([radians(l2 - l1) for l2, l1 in zip(lon2, lon1)])
-        lat1 = np.array([radians(l) for l in lat1])
-        lat2 = np.array([radians(l) for l in lat2])
+        lat1 = np.array([radians(lat_val) for lat_val in lat1])
+        lat2 = np.array([radians(lat_val) for lat_val in lat2])
     else:
         dLat = radians(lat2 - lat1)
         dLon = radians(lon2 - lon1)
@@ -69,8 +69,6 @@ def initiate_centroids(k, df):
 
 
 def centroid_assignation(df, centroids):
-    k = len(centroids)
-    n = len(df)
     assignation = []
     assign_errors = []
     centroids_list = [c for i, c in centroids.iterrows()]
@@ -98,8 +96,8 @@ def Encoder(df):
         try:
             df[feature] = le.fit_transform(df[feature])
             encoders[feature] = le
-        except:
-            print("Error encoding " + feature)
+        except (ValueError, TypeError) as e:
+            print(f"Error encoding {feature}: {e}")
     return df, encoders
 
 
@@ -206,6 +204,8 @@ def generate_features(df, restaurants_ids):
         "restaurants_counts_per_h3_index": restaurants_counts_per_h3_index,
         "dict_indexes": dict_indexes,
         "encoders": encoders,
+        "h3_resolution": resolution,
+        "k_clusters": k,
     }
     return df, artifacts
 

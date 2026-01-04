@@ -9,6 +9,8 @@ import yaml
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
+from src.core.constants import FEATURE_COLUMNS, TARGET_COLUMN
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,22 +41,9 @@ def main():
     logger.info(f"Loading data from {input_data_path}")
     df = pd.read_csv(input_data_path)
 
-    # Prepare data (same logic as training)
-    feature_cols = [
-        "dist_to_restaurant",
-        "Hdist_to_restaurant",
-        "avg_Hdist_to_restaurants",
-        "date_day_number",
-        "restaurant_id",
-        "Five_Clusters_embedding",
-        "h3_index",
-        "date_hour_number",
-        "restaurants_per_index",
-    ]
-    target_col = "orders_busyness_by_h3_hour"
-
-    X = df[feature_cols]
-    y = df[target_col]
+    # Prepare data using shared constants
+    X = df[FEATURE_COLUMNS]
+    y = df[TARGET_COLUMN]
 
     # Split data
     logger.info("Splitting data...")

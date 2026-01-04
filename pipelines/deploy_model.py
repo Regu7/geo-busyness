@@ -404,9 +404,9 @@ def main():
             # Give IAM a moment to propagate
             time.sleep(10)
             api_url = create_api_gateway(region, endpoint_name, apigw_role_arn)
-            print(f"\nSuccess! You can invoke your model at:")
+            print("\nSuccess! You can invoke your model at:")
             print(f"POST {api_url}")
-            print(f"Body: CSV data (e.g., '10,20,30')")
+            print("Body: CSV data (e.g., '10,20,30')")
 
 
 if __name__ == "__main__":

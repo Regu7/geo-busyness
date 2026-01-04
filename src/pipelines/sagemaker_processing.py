@@ -1,11 +1,7 @@
-import argparse
 import os
-from io import StringIO
 
-import boto3
 import joblib
 import pandas as pd
-import yaml
 
 from src.core.data_ingestion import load_and_process_data
 from src.core.feature_engineering import generate_features
