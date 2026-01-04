@@ -8,10 +8,14 @@ import mlflow
 import mlflow.sklearn
 import pandas as pd
 import yaml
+from dotenv import load_dotenv
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV, train_test_split
 
 from src.core.constants import FEATURE_COLUMNS, TARGET_COLUMN
+
+# Load .env file for local development
+load_dotenv()
 
 # ---------------------- Logging setup ----------------------
 logging.basicConfig(
@@ -27,8 +31,28 @@ file_handler.setFormatter(
 )
 logger.addHandler(file_handler)
 
-# Set up MLflow tracking (will use SageMaker MLflow if MLFLOW_TRACKING_URI is set)
-mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "file:./mlruns"))
+# ---------------------- MLflow Configuration ----------------------
+# Environment variables:
+#   MLFLOW_TRACKING_URI - The HTTP URL of the MLflow tracking server
+#   MLFLOW_TRACKING_ARN - The ARN of the SageMaker MLflow tracking server (required for SageMaker)
+#   MLFLOW_TRACKING_AWS_SIGV4 - Set to "true" to enable AWS SigV4 authentication
+
+mlflow_tracking_uri = os.environ.get("MLFLOW_TRACKING_URI")
+mlflow_tracking_arn = os.environ.get("MLFLOW_TRACKING_ARN")
+
+if mlflow_tracking_uri and mlflow_tracking_arn:
+    # SageMaker Managed MLflow - requires AWS SigV4 auth
+    os.environ["MLFLOW_TRACKING_AWS_SIGV4"] = "true"
+    mlflow.set_tracking_uri(mlflow_tracking_uri)
+    logger.info(f"Using SageMaker MLflow: {mlflow_tracking_uri}")
+elif mlflow_tracking_uri:
+    # Standard MLflow server (http/https)
+    mlflow.set_tracking_uri(mlflow_tracking_uri)
+    logger.info(f"Using MLflow server: {mlflow_tracking_uri}")
+else:
+    # Local file-based tracking
+    mlflow.set_tracking_uri("file:./mlruns")
+    logger.info("Using local MLflow tracking: file:./mlruns")
 
 
 # ---------------------- Utilities ----------------------

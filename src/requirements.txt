@@ -6,3 +6,4 @@ numpy
 scikit-learn
 h3
 joblib
+python-dotenv
