@@ -14,9 +14,12 @@ def test_load_config(mock_config):
             mock_open.assert_called_once()
 
 
+@patch("src.core.data_ingestion.validate_dataframe")
 @patch("src.core.data_ingestion.load_config")
 @patch("src.core.data_ingestion.boto3.client")
-def test_load_and_process_data_from_s3(mock_boto_client, mock_load_config, mock_config):
+def test_load_and_process_data_from_s3(
+    mock_boto_client, mock_load_config, mock_validate, mock_config
+):
     mock_load_config.return_value = mock_config
 
     # Mock S3 response
@@ -25,6 +28,9 @@ def test_load_and_process_data_from_s3(mock_boto_client, mock_load_config, mock_
     mock_s3.get_object.return_value = {"Body": io.BytesIO(csv_content.encode("utf-8"))}
     mock_boto_client.return_value = mock_s3
 
+    # Mock validation to return the df as-is with no errors
+    mock_validate.side_effect = lambda df, _: (df, [])
+
     df, restaurants_ids = load_and_process_data(df=None)
 
     assert isinstance(df, pd.DataFrame)
@@ -32,6 +38,7 @@ def test_load_and_process_data_from_s3(mock_boto_client, mock_load_config, mock_
     assert "restaurant_id" in df.columns
     mock_s3.get_object.assert_called_once()
     mock_s3.put_object.assert_called_once()
+    mock_validate.assert_called_once()
 
 
 @patch("src.core.data_ingestion.load_config")
