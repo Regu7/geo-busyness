@@ -330,7 +330,7 @@ def main():
     # 3. Deploy (Create or Update)
     if endpoint_exists:
         # Check if update is needed
-        if current_model_arn == model_package_arn:
+        if current_model_arn == model_package_arn and endpoint_status != "Failed":
             print(
                 f"Endpoint is already running the latest model ({model_package_arn}). Skipping update."
             )
