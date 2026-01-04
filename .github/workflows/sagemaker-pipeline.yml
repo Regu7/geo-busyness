@@ -3,7 +3,7 @@ name: SageMaker CD
 on:
   workflow_run:
     workflows: ["CI"]
-    branches: [dev_pipeline]
+    branches: [main, dev]
     types:
       - completed
   workflow_dispatch:
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 env:
-  POD: dev
+  POD: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
   AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_OIDC_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
   SAGEMAKER_ROLE_ARN: ${{ secrets.SAGEMAKER_ROLE_ARN }}
