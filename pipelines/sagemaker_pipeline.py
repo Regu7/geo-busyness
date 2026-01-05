@@ -108,6 +108,7 @@ estimator = Estimator(
         "SAGEMAKER_SUBMIT_DIRECTORY": "/app",
         "MLFLOW_TRACKING_URI": MLFLOW_TRACKING_URI or "file:/app/mlruns",
         "MLFLOW_TRACKING_ARN": MLFLOW_TRACKING_ARN or "",
+        "AWS_DEFAULT_REGION": region,
     },
 )
 
