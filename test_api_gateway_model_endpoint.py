@@ -53,7 +53,7 @@ def test_prediction():
             try:
                 print(f"Response JSON: {response.json()}")
             except json.JSONDecodeError:
-                print("Response is not valid JSON (likely CSV).")
+                # print("Response is not valid JSON (likely CSV).")
                 print(f"Response Text: {response.text}")
         else:
             print(f"Response Body: {response.text}")

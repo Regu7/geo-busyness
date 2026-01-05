@@ -1,6 +1,6 @@
 # Geo Busyness Prediction Pipeline
 
-Predicts the busyness of geographic regions (H3 hexagons) based on courier location data. Built as part of an ML Engineering assignment to productionize a data scientist's PoC notebook.
+Predicts the busyness of geographic regions (H3 hexagons) based on courier location data.
 
 ## Quick Start
 
@@ -51,31 +51,51 @@ tests/
 
 ## Pipeline Architecture
 
+![SageMaker Pipeline](docs/pics/pipeline.png)
+
 ```
-Raw Data (S3) → Feature Engineering → Model Training → Model Registry → Endpoint
+Raw Data (S3) → Feature Engineering → Training → Evaluation → [Conditional] → Model Registry → Endpoint
 ```
 
-1. **Feature Engineering** — Calculates distances (Euclidean, Haversine), H3 indexes, cluster embeddings
-2. **Training** — Random Forest with GridSearchCV hyperparameter tuning
-3. **Deployment** — Registers model, deploys to SageMaker endpoint
+| Step | Description |
+|------|-------------|
+| **Feature Engineering** | Calculates distances (Euclidean, Haversine), H3 indexes, cluster embeddings |
+| **Training** | Random Forest with GridSearchCV hyperparameter tuning |
+| **Evaluation** | Computes R² score on test set |
+| **Conditional Check** | **Model is registered only if R² ≥ 0.6** (60%) |
+| **Deployment** | Registers model in SageMaker Model Registry, deploys to endpoint |
 
 ## CI/CD
+
+![GitHub Actions CD Workflow](docs/pics/github_actions_cd_workflow.png)
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
 | CI | Every push | Runs pytest |
 | CD | After CI passes on `main`/`dev` | Builds Docker → Runs SageMaker pipeline → Deploys |
 
+### CD Workflow Steps
+
+1. **Build & Push Image** — Builds Docker image, pushes to ECR
+2. **Upload Config** — Uploads `config.yaml` to S3
+3. **Run SageMaker Pipeline** — Executes feature engineering, training, evaluation
+4. **Approve Model** — Approves model in registry (if R² ≥ 0.6)
+5. **Deploy Model** — Creates/updates SageMaker endpoint
+
 ## Design Decisions
 
-- **SageMaker over Vertex AI** — More familiar with AWS ecosystem
-- **Config in S3** — Allows param changes without image rebuild
-- **MLflow tracking** — Experiment tracking for model comparison
-- **Pydantic validation** — Catches bad data early (lat/lon range checks)
+- **SageMaker over Vertex AI** - More familiar with AWS ecosystem
+- **Config in S3** - Allows param changes without image rebuild
+- **MLflow tracking** - Experiment tracking for model comparison
+- **Pydantic validation** - Catches bad data early (lat/lon range checks)
+- **Conditional model registration** - Only models with R² ≥ 0.6 get deployed
+- **Separate processing/training steps** - Allows caching and parallel execution
+- **Docker containerization** - Reproducible environment across dev/prod
+- **GitHub Actions OIDC** - Secure AWS auth without long-lived credentials
 
 ## Environment Variables
 
 Set these in GitHub Secrets:
-- `AWS_OIDC_ROLE_ARN` — For GitHub OIDC auth
-- `SAGEMAKER_ROLE_ARN` — SageMaker execution role
-- `AWS_REGION` — e.g., `us-east-1`
+- `AWS_OIDC_ROLE_ARN` - For GitHub OIDC auth
+- `SAGEMAKER_ROLE_ARN` - SageMaker execution role
+- `AWS_REGION` - e.g., `us-east-1`
