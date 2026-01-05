@@ -86,42 +86,7 @@ def train_model(df: pd.DataFrame, config=None):
         # ---------- Data ----------
         X = df[FEATURE_COLUMNS]
         y = df[TARGET_COLUMN]
-
-        X_train, X_test, y_train, y_test = train_test_split(
-            X,
-            y,
-            test_size=test_size,
-            random_state=random_state,
-        )
-
-        # ---------- Baseline model ----------
-        regr = RandomForestRegressor(
-            max_depth=4,
-            random_state=random_state,
-            n_jobs=-1,
-        )
-        regr.fit(X_train, y_train)
-
-        baseline_score = regr.score(X_test, y_test)
-        logger.info(f"Initial model R²: {baseline_score}")
-
-        mlflow.log_metric("initial_r2_score", baseline_score)
-
-        # ---------- Grid Search ----------
-        grid_search = GridSearchCV(
-            estimator=regr,
-            param_grid=params,
-            cv=3,
-            n_jobs=-1,
-            scoring="r2",
-            verbose=1,
-        )
-        grid_search.fit(X_train, y_train)
-
-        best_cv_score = grid_search.best_score_
-        logger.info(f"Best CV R²: {best_cv_score}")
-
-        mlflow.log_metric("best_cv_r2_score", best_cv_score)
+ic("best_cv_r2_score", best_cv_score)
 
         # ---------- Best model evaluation ----------
         best_model = grid_search.best_estimator_

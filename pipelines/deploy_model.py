@@ -275,7 +275,7 @@ def main():
             role = sagemaker.get_execution_role()
         except ValueError:
             print("Could not get execution role from environment.")
-            role = "arn:aws:iam::872869206989:role/service-role/AmazonSageMakerAdminIAMExecutionRole"
+            role = "arn:aws:iam::872869206989:role/service-role/AmazonSageMaker-ExecutionRole-20260102T193388"
 
     # 1. Find latest approved model
     latest_model = get_latest_approved_model_package(

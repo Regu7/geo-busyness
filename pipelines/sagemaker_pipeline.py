@@ -29,7 +29,7 @@ if not role:
     try:
         role = sagemaker.get_execution_role()
     except ValueError:
-        role = "arn:aws:iam::872869206989:role/service-role/AmazonSageMakerAdminIAMExecutionRole"
+        role = "arn:aws:iam::872869206989:role/service-role/AmazonSageMaker-ExecutionRole-20260102T193388"
 
 pipeline_session = PipelineSession()
 
