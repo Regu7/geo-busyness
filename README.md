@@ -102,13 +102,14 @@ The model is served via API Gateway, which routes requests to the SageMaker endp
 - **SageMaker over Vertex AI** - More familiar with AWS ecosystem
 - **Config in S3** - Allows param changes without image rebuild
 - **Separate processing/training steps** - Allows caching and parallel execution
-- **MLflow tracking** - Experiment tracking for model comparison with Sagemkaer Mlflow
+- **MLflow tracking** - Experiment tracking for model comparison
+- **SageMaker Model Registry** - Versions and manages models for deployment with Sagemkaer Mlflow
 - **Modular inference code** - Organized in `src/inference/` for better maintainability
 - **Pydantic validation** - Catches bad data early (lat/lon range checks)
 - **Docker containerization** - Reproducible environment across dev/prod
 - **Conditional model registration** - Only models with R² ≥ 0.6 get deployed
 - **GitHub Actions OIDC** - Secure AWS auth without long-lived credentials
-- **API Gateway serving** - Provides a secure, scalable interface for the SageMaker endpoint
+- **SageMaker endpoints with API Gateway** - Secure, scalable model serving and inference
 - **uv for dependency management** - Fast, modern Python packaging tool
 - **Ruff for linting and formatting** - Fast Python linter and code formatter
 
