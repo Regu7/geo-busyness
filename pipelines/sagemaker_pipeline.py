@@ -179,7 +179,7 @@ model = Model(
     role=role,
     sagemaker_session=pipeline_session,
     env={
-        "SAGEMAKER_PROGRAM": "src/model_inference.py",
+        "SAGEMAKER_PROGRAM": "src/inference/model_inference.py",
         "SAGEMAKER_SUBMIT_DIRECTORY": "/app",
     },
 )

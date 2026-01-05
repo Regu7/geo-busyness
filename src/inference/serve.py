@@ -7,7 +7,7 @@ from flask import Flask, Response, request
 # Add /app to path to ensure we can import src
 sys.path.append("/app")
 
-from src.model_inference import input_fn, model_fn, output_fn, predict_fn
+from src.inference.model_inference import input_fn, model_fn, output_fn, predict_fn
 
 app = Flask(__name__)
 

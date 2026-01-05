@@ -828,6 +828,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "requests-auth-aws-sigv4" },
     { name = "sagemaker" },
+    { name = "sagemaker-mlflow" },
     { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scikit-learn", version = "1.8.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
@@ -859,6 +860,7 @@ requires-dist = [
     { name = "pyyaml" },
     { name = "requests-auth-aws-sigv4" },
     { name = "sagemaker", specifier = "==2.255.0" },
+    { name = "sagemaker-mlflow" },
     { name = "scikit-learn" },
 ]
 provides-extras = ["dev"]
@@ -2729,6 +2731,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/35/c8/9363452183e0d7ff159725036d9e973792bcdd83bff330a5a32ce938e7b8/sagemaker_core-1.0.72.tar.gz", hash = "sha256:1b14dace8bfc65b4564f2e893547150140daf2106a29d016a0621a4ad3e6102c", size = 423748, upload-time = "2025-12-18T10:25:09.939Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d3/7e/3b327732ae98c6b2a6d0cd21f34cb314aedec6fe6f21aead57bd24897f82/sagemaker_core-1.0.72-py3-none-any.whl", hash = "sha256:909dca73f6a5c86bce0b0dc41bfb636c0af09bc52c02097bbcd685c49993a27b", size = 438672, upload-time = "2025-12-18T10:25:08.243Z" },
+]
+
+[[package]]
+name = "sagemaker-mlflow"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "boto3" },
+    { name = "mlflow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f8/af/2d61ab32c848728c375c88157817efcac4d6542e379ca7e2a9d84913470f/sagemaker_mlflow-0.2.0.tar.gz", hash = "sha256:88bb6b06d455c47fc2a746edb6467ea4d5a59ff41d6a0e499a11b0caf0896d01", size = 15655, upload-time = "2025-12-02T12:55:55.149Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/85/6a/2beff3c8e3dea3eb25cd1d6bf3fdec1535582f8d0a99ccdab339ad5a0ac2/sagemaker_mlflow-0.2.0-py3-none-any.whl", hash = "sha256:4a2a18c269053f7502b7ce44def4885b2b464a6d85b06f61363808167a88d7c2", size = 19824, upload-time = "2025-12-02T12:55:53.248Z" },
 ]
 
 [[package]]
