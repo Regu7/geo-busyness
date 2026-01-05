@@ -132,5 +132,6 @@ Other areas like model training lacked proper artifact saving and evaluation met
 
 ## Screenshots
 
-- **SageMaker Endpoint**: ![Endpoint Screenshot](docs/images/endpoint_screenshot.png)
-- **Model Registry Page**: ![Model Registry Screenshot](docs/images/model_registry_screenshot.png)
+- **SageMaker Endpoint**: ![Endpoint Screenshot](docs/images/endpoint.png)
+- **Model Registry Page**: ![Model Registry Screenshot](docs/images/model_registry_page.png)
+
