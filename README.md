@@ -129,3 +129,8 @@ Feature engineering had inefficiencies too, like the manual K-means clustering f
 A major concern was data leakage in the target variable calculation. The orders_busyness_by_h3_hour was computed using counts from the entire dataset, meaning the training set inadvertently "knew" about test set information. In production, this must be calculated within time windows or strictly on the training split to avoid overfitting.
 
 Other areas like model training lacked proper artifact saving and evaluation metrics, which are now handled with MLflow and conditional deployment. Overall, the notebook's monolithic structure was broken into modular scripts, adding logging, testing, and CI/CD for a reliable ML pipeline.
+
+## Screenshots
+
+- **SageMaker Endpoint**: ![Endpoint Screenshot](docs/images/endpoint_screenshot.png)
+- **Model Registry Page**: ![Model Registry Screenshot](docs/images/model_registry_screenshot.png)
