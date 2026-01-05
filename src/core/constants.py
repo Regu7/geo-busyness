@@ -1,5 +1,9 @@
 """
 Constants and shared configurations for the geo-busyness pipeline.
+
+Note: Runtime parameters (h3_resolution, k_clusters, test_size, etc.)
+are defined in config.yaml - not here. This file contains only
+code-level constants that rarely change.
 """
 
 # Feature columns used for model training and inference
@@ -37,19 +41,6 @@ REQUIRED_INFERENCE_COLUMNS = [
     "restaurant_lon",
     "courier_location_timestamp",
 ]
-
-# Default H3 resolution for geospatial indexing
-DEFAULT_H3_RESOLUTION = 7
-
-# Default number of clusters for restaurant embedding
-DEFAULT_K_CLUSTERS = 5
-
-# Default random seed for reproducibility
-DEFAULT_RANDOM_SEED = 1
-
-# Default train/test split parameters
-DEFAULT_TEST_SIZE = 0.33
-DEFAULT_RANDOM_STATE = 42
 
 # Earth radius in kilometers (for Haversine distance calculation)
 EARTH_RADIUS_KM = 6372.8

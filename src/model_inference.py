@@ -8,9 +8,12 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from src.core.constants import DEFAULT_H3_RESOLUTION, FEATURE_COLUMNS
+from src.core.constants import FEATURE_COLUMNS
 from src.core.feature_engineering import calc_dist, calc_haversine_dist
 from src.core.validation import validate_dataframe
+
+# Fallback H3 resolution if not in artifacts (matches config.yaml default)
+_FALLBACK_H3_RESOLUTION = 7
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -87,8 +90,8 @@ def transform_data(df, artifacts):
     df["date_day_number"] = df.courier_location_timestamp.dt.day_of_year
     df["date_hour_number"] = df.courier_location_timestamp.dt.hour
 
-    # Use resolution from artifacts (saved during training) or default
-    resolution = artifacts.get("h3_resolution", DEFAULT_H3_RESOLUTION)
+    # Use resolution from artifacts (saved during training) or fallback
+    resolution = artifacts.get("h3_resolution", _FALLBACK_H3_RESOLUTION)
     df["h3_index"] = [
         h3.latlng_to_cell(lat, lon, resolution)
         for (lat, lon) in zip(df.courier_lat, df.courier_lon)
