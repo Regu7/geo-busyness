@@ -22,7 +22,7 @@ env:
   AWS_OIDC_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
   SAGEMAKER_ROLE_ARN: ${{ secrets.SAGEMAKER_ROLE_ARN }}
   # MLflow tracking server configuration - derived from naming convention
-  MLFLOW_SERVER_NAME: mlflow-geo-busyness
+  MLFLOW_SERVER_NAME: mlflow-geo-bysuness-prod
   ECR_IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
   CONFIG_S3_KEY: config/config.yaml
   LOCAL_CONFIG_PATH: src/config/config.yaml
