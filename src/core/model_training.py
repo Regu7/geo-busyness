@@ -34,17 +34,15 @@ logger.addHandler(file_handler)
 # ---------------------- MLflow Configuration ----------------------
 # Environment variables:
 #   MLFLOW_TRACKING_URI - The HTTP URL of the MLflow tracking server
-#   MLFLOW_TRACKING_ARN - The ARN of the SageMaker MLflow tracking server (required for SageMaker)
-#   MLFLOW_TRACKING_AWS_SIGV4 - Set to "true" to enable AWS SigV4 authentication
+#   MLFLOW_TRACKING_ARN - The ARN of the SageMaker MLflow tracking server (use ARN directly!)
 
 mlflow_tracking_uri = os.environ.get("MLFLOW_TRACKING_URI")
 mlflow_tracking_arn = os.environ.get("MLFLOW_TRACKING_ARN")
 
-if mlflow_tracking_uri and mlflow_tracking_arn:
-    # SageMaker Managed MLflow - requires AWS SigV4 auth
-    os.environ["MLFLOW_TRACKING_AWS_SIGV4"] = "true"
-    mlflow.set_tracking_uri(mlflow_tracking_uri)
-    logger.info(f"Using SageMaker MLflow: {mlflow_tracking_uri}")
+if mlflow_tracking_arn:
+    # SageMaker Managed MLflow - use ARN directly as tracking URI (this works in SageMaker!)
+    mlflow.set_tracking_uri(mlflow_tracking_arn)
+    logger.info(f"Using SageMaker MLflow ARN: {mlflow_tracking_arn}")
 elif mlflow_tracking_uri:
     # Standard MLflow server (http/https)
     mlflow.set_tracking_uri(mlflow_tracking_uri)
