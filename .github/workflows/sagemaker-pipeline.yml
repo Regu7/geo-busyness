@@ -150,6 +150,23 @@ jobs:
           role-to-assume: ${{ env.AWS_OIDC_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Get MLflow tracking server info
+        run: |
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          
+          # Derive MLflow ARN from naming convention
+          MLFLOW_TRACKING_ARN="arn:aws:sagemaker:${{ env.AWS_REGION }}:${AWS_ACCOUNT_ID}:mlflow-tracking-server/${{ env.MLFLOW_SERVER_NAME }}"
+          echo "MLFLOW_TRACKING_ARN=${MLFLOW_TRACKING_ARN}" >> $GITHUB_ENV
+          
+          # Get MLflow tracking URL from SageMaker API
+          MLFLOW_TRACKING_URI=$(aws sagemaker describe-mlflow-tracking-server \
+            --tracking-server-name ${{ env.MLFLOW_SERVER_NAME }} \
+            --query 'TrackingServerUrl' --output text)
+          echo "MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI}" >> $GITHUB_ENV
+          
+          echo "MLflow ARN: ${MLFLOW_TRACKING_ARN}"
+          echo "MLflow URI: ${MLFLOW_TRACKING_URI}"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
