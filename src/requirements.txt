@@ -8,3 +8,4 @@ scikit-learn
 h3
 joblib
 python-dotenv
+sagemaker-mlflow

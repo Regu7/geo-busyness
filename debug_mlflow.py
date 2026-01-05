@@ -9,12 +9,13 @@ Usage:
 import os
 
 import boto3
+import requests
 
 
 # Get tracking server info from AWS
 def get_mlflow_config():
     """Fetch MLflow tracking server info from SageMaker."""
-    mlflow_server_name = "mlflow-geo-busyness"
+    mlflow_server_name = "mlflow-geo-bysuness-prod"
 
     try:
         session = boto3.Session()
@@ -36,12 +37,62 @@ def get_mlflow_config():
         print(f"   Tracking URI: {tracking_uri}")
         print(f"   Tracking ARN: {tracking_arn}")
         print(f"   Server Status: {response.get('TrackingServerStatus')}")
+        print(f"   Is Active: {response.get('IsActive')}")
+        print(f"   Role ARN: {response.get('RoleArn')}")
+        print(f"   Artifact Store: {response.get('ArtifactStoreUri')}")
 
-        return tracking_uri, tracking_arn, region
+        return tracking_uri, tracking_arn, region, response
 
     except Exception as e:
         print(f"❌ Failed to get MLflow server info: {e}")
-        return None, None, None
+        return None, None, None, None
+
+
+def test_raw_http(tracking_uri, tracking_arn, region):
+    """Test raw HTTP request with SigV4 auth."""
+    print("\n--- Testing Raw HTTP Request ---")
+
+    try:
+        from requests_auth_aws_sigv4 import AWSSigV4
+
+        # Test basic connectivity without auth first
+        print(f"\n[Test] Basic HTTPS connectivity to {tracking_uri}...")
+        try:
+            resp = requests.get(f"{tracking_uri}/health", timeout=10)
+            print(
+                f"   Health check: {resp.status_code} - {resp.text[:100] if resp.text else 'empty'}"
+            )
+        except Exception as e:
+            print(f"   Health check failed: {e}")
+
+        # Test with SigV4 auth - try different service names
+        print(f"\n[Test] SigV4 authenticated request...")
+
+        # The key header that SageMaker MLflow requires
+        headers = {
+            "x-amzn-sagemaker-mlflow-tracking-server-arn": tracking_arn,
+        }
+
+        for service_name in ["sagemaker", "execute-api"]:
+            print(f"\n   Trying service: {service_name}")
+            try:
+                auth = AWSSigV4(service_name, region=region)
+                url = f"{tracking_uri}/api/2.0/mlflow/experiments/search"
+                resp = requests.post(
+                    url, auth=auth, json={}, headers=headers, timeout=30
+                )
+                if resp.status_code == 200:
+                    print(f"✅ Success with service: {service_name}")
+                    return True
+            except Exception as e:
+                print(f"   Error: {e}")
+
+        print(f"❌ All service names failed")
+        return False
+
+    except Exception as e:
+        print(f"❌ Raw HTTP test failed: {e}")
+        return False
 
 
 def test_mlflow_connection(tracking_uri, tracking_arn, region):
@@ -137,13 +188,26 @@ if __name__ == "__main__":
     print()
 
     # Get MLflow config from AWS
-    tracking_uri, tracking_arn, region = get_mlflow_config()
+    tracking_uri, tracking_arn, region, server_info = get_mlflow_config()
 
     if not tracking_uri:
         print("\n❌ Could not get MLflow server info. Check your AWS credentials.")
         exit(1)
 
-    # Test connection
+    # Check server status
+    if server_info:
+        status = server_info.get("TrackingServerStatus")
+        is_active = server_info.get("IsActive")
+        if status != "Created" or not is_active:
+            print(
+                f"\n⚠️  Server may not be ready: Status={status}, IsActive={is_active}"
+            )
+
+    # Test raw HTTP first (skip if it fails - may need SageMaker role)
+    http_ok = test_raw_http(tracking_uri, tracking_arn, region)
+
+    # Try MLflow client anyway - it may use different auth
+    print("\n--- Testing MLflow Client (may work even if raw HTTP fails) ---")
     success = test_mlflow_connection(tracking_uri, tracking_arn, region)
 
     if success:
@@ -153,7 +217,5 @@ if __name__ == "__main__":
     else:
         print("\n" + "=" * 50)
         print("❌ MLflow connection failed. Check the errors above.")
-        print("=" * 50)
-        exit(1)
         print("=" * 50)
         exit(1)
