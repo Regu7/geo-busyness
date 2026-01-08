@@ -8,7 +8,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from src.core.constants import FEATURE_COLUMNS, REQUIRED_COLUMNS
+from src.core.constants import FEATURE_COLUMNS, REQUIRED_INFERENCE_COLUMNS
 from src.core.feature_engineering import calc_dist, calc_haversine_dist
 from src.core.validation import validate_dataframe
 
@@ -63,7 +63,7 @@ def transform_data(df, artifacts):
     logger.info("Starting feature engineering on input data")
 
     # Ensure required columns exist
-    required_cols = REQUIRED_COLUMNS
+    required_cols = REQUIRED_INFERENCE_COLUMNS
     if not all(col in df.columns for col in required_cols):
         raise ValueError(f"Input data missing required columns: {required_cols}")
 
@@ -180,7 +180,7 @@ def input_fn(request_body, request_content_type):
             if df.empty:
                 raise ValueError("No valid data after validation")
             # Ensure required columns exist
-            required_cols = REQUIRED_COLUMNS
+            required_cols = REQUIRED_INFERENCE_COLUMNS
             if not all(col in df.columns for col in required_cols):
                 raise ValueError(
                     f"Input data missing required columns: {required_cols}"
@@ -204,7 +204,7 @@ def input_fn(request_body, request_content_type):
             if df.empty:
                 raise ValueError("No valid data after validation")
             # Ensure required columns exist
-            required_cols = REQUIRED_COLUMNS
+            required_cols = REQUIRED_INFERENCE_COLUMNS
             if not all(col in df.columns for col in required_cols):
                 raise ValueError(
                     f"Input data missing required columns: {required_cols}"
