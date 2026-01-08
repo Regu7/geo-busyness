@@ -68,7 +68,7 @@ def main():
     # Save evaluation report
     report_dict = {
         "regression_metrics": {
-            "r2_score": {"value": score, "standard_deviation": "NaN"}
+            "r2_score": {"value": score}
         },
     }
 

@@ -1,7 +1,7 @@
 [project]
 name = "geo-busyness"
 version = "0.1.0"
-description = "Add your description here"
+description = "This application predicts geographic busyness levels for delivery optimization. It uses machine learning to analyze courier movements and restaurant data."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

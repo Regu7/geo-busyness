@@ -25,8 +25,7 @@ def realistic_df():
     np.random.seed(42)
     n_samples = 100
 
-    # Generate realistic coordinates (around a typical city)
-    base_lat, base_lon = 40.7128, -74.0060  # NYC area
+    base_lat, base_lon = 40.7128, -74.0060  
 
     data = {
         "courier_id": np.random.randint(1, 20, n_samples),
