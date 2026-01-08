@@ -8,7 +8,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from src.core.constants import FEATURE_COLUMNS
+from src.core.constants import FEATURE_COLUMNS, REQUIRED_COLUMNS
 from src.core.feature_engineering import calc_dist, calc_haversine_dist
 from src.core.validation import validate_dataframe
 
@@ -63,13 +63,7 @@ def transform_data(df, artifacts):
     logger.info("Starting feature engineering on input data")
 
     # Ensure required columns exist
-    required_cols = [
-        "courier_lat",
-        "courier_lon",
-        "restaurant_lat",
-        "restaurant_lon",
-        "courier_location_timestamp",
-    ]
+    required_cols = REQUIRED_COLUMNS
     if not all(col in df.columns for col in required_cols):
         raise ValueError(f"Input data missing required columns: {required_cols}")
 
@@ -185,6 +179,12 @@ def input_fn(request_body, request_content_type):
                 logger.warning(f"Validation dropped {len(errors)} invalid rows")
             if df.empty:
                 raise ValueError("No valid data after validation")
+            # Ensure required columns exist
+            required_cols = REQUIRED_COLUMNS
+            if not all(col in df.columns for col in required_cols):
+                raise ValueError(
+                    f"Input data missing required columns: {required_cols}"
+                )
             return df
         except Exception as e:
             logger.error(f"Error parsing CSV: {e}")
@@ -203,6 +203,12 @@ def input_fn(request_body, request_content_type):
                 logger.warning(f"Validation dropped {len(errors)} invalid rows")
             if df.empty:
                 raise ValueError("No valid data after validation")
+            # Ensure required columns exist
+            required_cols = REQUIRED_COLUMNS
+            if not all(col in df.columns for col in required_cols):
+                raise ValueError(
+                    f"Input data missing required columns: {required_cols}"
+                )
             return df
         except Exception as e:
             logger.error(f"Error parsing JSON: {e}")

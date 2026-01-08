@@ -94,7 +94,6 @@ feature_step = ProcessingStep(
 # ------------------------------------------------------------------
 # Step 2: Training
 # ------------------------------------------------------------------
-# Use generic Estimator to avoid local file checks
 
 estimator = Estimator(
     image_uri=ECR_IMAGE_URI,

@@ -40,7 +40,7 @@ mlflow_tracking_uri = os.environ.get("MLFLOW_TRACKING_URI")
 mlflow_tracking_arn = os.environ.get("MLFLOW_TRACKING_ARN")
 
 if mlflow_tracking_arn:
-    # SageMaker Managed MLflow - use ARN directly as tracking URI (this works in SageMaker!)
+    # SageMaker Managed MLflow - use ARN directly as tracking URI
     mlflow.set_tracking_uri(mlflow_tracking_arn)
     logger.info(f"Using SageMaker MLflow ARN: {mlflow_tracking_arn}")
 elif mlflow_tracking_uri:
